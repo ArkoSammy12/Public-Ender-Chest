@@ -4,6 +4,7 @@ import com.mojang.brigadier.Command
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.BoolArgumentType
 import com.mojang.brigadier.tree.ArgumentCommandNode
+import com.mojang.brigadier.tree.CommandNode
 import com.mojang.brigadier.tree.LiteralCommandNode
 import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.server.command.CommandManager
@@ -19,9 +20,6 @@ object CommandManager {
         if (environment != CommandManager.RegistrationEnvironment.DEDICATED) {
             return
         }
-        val parentNode: LiteralCommandNode<ServerCommandSource> = CommandManager
-            .literal(PublicEnderChest.MOD_ID + "-regular_commands")
-            .build()
 
         val setTogglePublicInventoryUseNode: LiteralCommandNode<ServerCommandSource> = CommandManager
             .literal("usePublicInventory")
@@ -56,7 +54,13 @@ object CommandManager {
             }
             .build()
 
-        dispatcher.root.addChild(parentNode)
+        val parentNode: CommandNode<ServerCommandSource> = dispatcher.root.getChild(PublicEnderChest.MOD_ID) ?: run {
+            val node: LiteralCommandNode<ServerCommandSource> = CommandManager
+                .literal(PublicEnderChest.MOD_ID)
+                .build()
+            dispatcher.root.addChild(node)
+            node
+        }
         parentNode.addChild(setTogglePublicInventoryUseNode)
         setTogglePublicInventoryUseNode.addChild(togglePublicInventoryUseNodeArgumentNode)
         parentNode.addChild(openPublicInventoryNode)
