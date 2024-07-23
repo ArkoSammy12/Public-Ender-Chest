@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "xd.arkosammy.publicenderchest.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ClientPlayerInteractionManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+	}
+}

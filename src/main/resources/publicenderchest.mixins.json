@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "xd.arkosammy.publicenderchest.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"ServerPlayerEntityMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
