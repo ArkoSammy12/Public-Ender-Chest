@@ -40,7 +40,7 @@ sealed interface InventoryInteractionLog {
             val itemStackRegistryKey: RegistryKey<Item>? = Registries.ITEM.getKey(item).orElse(null)
             val itemStackId: Identifier = if (itemStackRegistryKey == null) {
                 PublicEnderChest.LOGGER.error("Error logging Public Ender Chest interaction: Unknown Item \"$item\"")
-                Identifier.ofVanilla("unkown_item")
+                Identifier.ofVanilla("unknown_item")
             } else {
                 itemStackRegistryKey.value
             }
