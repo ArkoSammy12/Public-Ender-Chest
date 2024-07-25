@@ -19,16 +19,25 @@ class JsonInventoryManagerSerializer<T : InventoryManager>(override val inventor
     override fun writeManager(codec: Codec<in T>, fileName: String, server: MinecraftServer, logWrite: Boolean) {
         val filePath: Path = getModFolderPath(server).resolve(getPathNameForFile(fileName))
         val encodedManager: DataResult<JsonElement> = codec.encodeStart(JsonOps.COMPRESSED, inventoryManager)
-        val encodedJson: JsonElement = encodedManager.getOrThrow { e ->
-            throw IllegalStateException("Error attempting to encode inventory manager: $e")
+        val encodedJsonOptional: Optional<JsonElement> = encodedManager.resultOrPartial { e ->
+            PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: $e")
         }
-        val gson = Gson()
-        val jsonString: String = gson.toJson(encodedJson)
-        Files.newBufferedWriter(filePath).use { bw ->
-            bw.write(jsonString)
-            if (logWrite) {
-                PublicEnderChest.LOGGER.info("Stored inventory manager to: $filePath")
+        if (encodedJsonOptional.isEmpty) {
+            PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: Empty JsonElement value!")
+            return
+        }
+        val encodedJson: JsonElement = encodedJsonOptional.get()
+        try {
+            val gson = Gson()
+            val jsonString: String = gson.toJson(encodedJson)
+            Files.newBufferedWriter(filePath).use { bw ->
+                bw.write(jsonString)
+                if (logWrite) {
+                    PublicEnderChest.LOGGER.info("Stored inventory manager to: $filePath")
+                }
             }
+        } catch (e: Exception) {
+            PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: $e")
         }
     }
 

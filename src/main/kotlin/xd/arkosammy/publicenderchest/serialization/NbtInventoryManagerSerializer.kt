@@ -20,11 +20,17 @@ class NbtInventoryManagerSerializer<T : InventoryManager>(override val inventory
     override fun writeManager(codec: Codec<in T>, fileName: String, server: MinecraftServer, logWrite: Boolean) {
         val filePath: Path = getModFolderPath(server).resolve(getPathNameForFile(fileName))
         val encodedManager: DataResult<NbtElement> = codec.encodeStart(NbtOps.INSTANCE, inventoryManager)
-        val encodedNbt: NbtElement = encodedManager.getOrThrow { e ->
-            throw IllegalStateException("Error attempting to encode inventory manager: $e")
+        val encodedNbtOptional: Optional<NbtElement> = encodedManager.resultOrPartial { e ->
+            PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: $e")
         }
+        if (encodedNbtOptional.isEmpty) {
+            PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: Empty NbtElement value!")
+            return
+        }
+        val encodedNbt: NbtElement = encodedNbtOptional.get()
         if (encodedNbt !is NbtCompound) {
-            throw IllegalStateException("Error attempting to encode inventory manager: Encoded nbt is not an NbtCompound!")
+            PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: Encoded nbt is not an NbtCompound!")
+            return
         }
         try {
             NbtIo.writeCompressed(encodedNbt, filePath)
@@ -32,7 +38,7 @@ class NbtInventoryManagerSerializer<T : InventoryManager>(override val inventory
                 PublicEnderChest.LOGGER.info("Stored inventory manager to: $filePath")
             }
         } catch (e: Exception) {
-            throw IllegalStateException("Error attempting to encode inventory manager: $e")
+            PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: $e")
         }
     }
 
