@@ -37,9 +37,13 @@ sealed interface InventoryInteractionLog {
             val playerName: String = player.name.string
             val uuid: String = player.uuid.toString()
             val item: Item = itemStack.item
-            val itemStackId: Identifier = Registries.ITEM.getKey(item).orElse(RegistryKey.of(RegistryKeys.ITEM, Identifier.ofVanilla("unknown_item").also {
+            val itemStackRegistryKey: RegistryKey<Item>? = Registries.ITEM.getKey(item).orElse(null)
+            val itemStackId: Identifier = if (itemStackRegistryKey == null) {
                 PublicEnderChest.LOGGER.error("Error logging Public Ender Chest interaction: Unknown Item \"$item\"")
-            })).value
+                Identifier.ofVanilla("unkown_item")
+            } else {
+                itemStackRegistryKey.value
+            }
             return when (logActionType) {
                 InventoryInteractionType.ITEM_REMOVE -> ItemRemoveLog(playerName, uuid, itemStackId, quantity, now)
                 InventoryInteractionType.ITEM_INSERT -> ItemInsertLog(playerName, uuid, itemStackId, quantity, now)
