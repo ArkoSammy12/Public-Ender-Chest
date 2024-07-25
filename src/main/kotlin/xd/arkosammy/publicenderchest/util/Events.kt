@@ -1,7 +1,6 @@
 package xd.arkosammy.publicenderchest.util
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.fabricmc.fabric.api.event.player.UseItemCallback
@@ -30,20 +29,10 @@ object Events {
         CommandRegistrationCallback.EVENT.register(CommandManager::registerCommands)
         UseBlockCallback.EVENT.register(::onBlockInteracted)
         UseItemCallback.EVENT.register(::onItemInteracted)
-        ServerLifecycleEvents.SERVER_STARTING.register(::onServerStarting)
-        ServerLifecycleEvents.SERVER_STOPPING.register(::onServerStopping)
         ServerTickEvents.END_SERVER_TICK.register(::onServerTick)
         PayloadTypeRegistry.playC2S().register(OpenPublicInventoryPayload.PACKET_ID, OpenPublicInventoryPayload.PACKET_CODEC)
         ServerPlayNetworking.registerGlobalReceiver(OpenPublicInventoryPayload.PACKET_ID, ::handleOpenInventoryPayload)
 
-    }
-
-    private fun onServerStarting(server: MinecraftServer) {
-        PublicEnderChest.INVENTORY_MANAGER.onServerStarting(server)
-    }
-
-    private fun onServerStopping(server: MinecraftServer) {
-        PublicEnderChest.INVENTORY_MANAGER.onServerStopping(server)
     }
 
     private fun onServerTick(server: MinecraftServer) {
@@ -63,11 +52,11 @@ object Events {
     }
 
     private fun onBlockInteracted(player: PlayerEntity, world: World, hand: Hand, hitResult: BlockHitResult) : ActionResult {
-        return PublicEnderChest.INVENTORY_MANAGER.onBlockInteracted(player, world, hand, hitResult)
+        return PublicEnderChest.INVENTORY_MANAGER.onBlockInteractedListener(player, world, hand, hitResult)
     }
 
     private fun onItemInteracted(player: PlayerEntity, world: World, hand: Hand): TypedActionResult<ItemStack> {
-        return PublicEnderChest.INVENTORY_MANAGER.onItemInteracted(player, world, hand)
+        return PublicEnderChest.INVENTORY_MANAGER.onItemInteractedListener(player, world, hand)
     }
 
 }

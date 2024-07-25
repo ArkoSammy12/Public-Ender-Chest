@@ -55,6 +55,10 @@ dependencies {
 
 	// Monkey config
 	modImplementation("xd.arkosammy:monkeyconfig:${project.monkey_config_version}")
+
+	// JDBC
+	include(implementation("org.xerial:sqlite-jdbc:${project.jdbc_version}"))
+
 }
 
 processResources {

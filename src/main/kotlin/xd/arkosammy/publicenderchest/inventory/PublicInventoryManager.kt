@@ -18,9 +18,9 @@ import xd.arkosammy.publicenderchest.serialization.InventoryManagerSerializer
 import xd.arkosammy.publicenderchest.serialization.NbtInventoryManagerSerializer
 import xd.arkosammy.publicenderchest.util.ducks.ServerPlayerEntityDuck
 
-class PublicInventoryManager(_publicInventory: PublicInventory = PublicInventory()) : InventoryManager {
+class PublicInventoryManager(inputPublicInventory: PublicInventory = PublicInventory()) : InventoryManager {
 
-    var publicInventory: PublicInventory = _publicInventory
+    var publicInventory: PublicInventory = inputPublicInventory
         private set
 
     private val serializer: InventoryManagerSerializer<PublicInventoryManager> = NbtInventoryManagerSerializer(this)
@@ -40,7 +40,7 @@ class PublicInventoryManager(_publicInventory: PublicInventory = PublicInventory
         serializer.writeManager(CODEC, PublicEnderChest.PUBLIC_INVENTORY_FILE_NAME, server, true)
     }
 
-    override fun onBlockInteracted(player: PlayerEntity, world: World, hand: Hand, hitResult: BlockHitResult): ActionResult {
+    override fun onBlockInteractedListener(player: PlayerEntity, world: World, hand: Hand, hitResult: BlockHitResult): ActionResult {
         if (world.isClient() || player !is ServerPlayerEntity) {
             return ActionResult.PASS
         }
@@ -62,7 +62,7 @@ class PublicInventoryManager(_publicInventory: PublicInventory = PublicInventory
         return ActionResult.SUCCESS
     }
 
-    override fun onItemInteracted(player: PlayerEntity, world: World, hand: Hand): TypedActionResult<ItemStack> {
+    override fun onItemInteractedListener(player: PlayerEntity, world: World, hand: Hand): TypedActionResult<ItemStack> {
         val heldStack: ItemStack = player.getStackInHand(hand)
         if (world.isClient() || player !is ServerPlayerEntity) {
             return TypedActionResult.pass(heldStack)

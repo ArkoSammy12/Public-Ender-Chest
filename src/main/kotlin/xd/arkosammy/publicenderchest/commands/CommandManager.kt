@@ -10,15 +10,22 @@ import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.server.command.CommandManager
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.text.MutableText
 import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 import xd.arkosammy.publicenderchest.PublicEnderChest
 import xd.arkosammy.publicenderchest.util.ducks.ServerPlayerEntityDuck
 
 object CommandManager {
 
     fun registerCommands(dispatcher: CommandDispatcher<ServerCommandSource>, registryAccess: CommandRegistryAccess, environment: CommandManager.RegistrationEnvironment) {
-        if (environment != CommandManager.RegistrationEnvironment.DEDICATED) {
-            return
+
+        val parentNode: CommandNode<ServerCommandSource> = dispatcher.root.getChild(PublicEnderChest.MOD_ID) ?: run {
+            val node: LiteralCommandNode<ServerCommandSource> = CommandManager
+                .literal(PublicEnderChest.MOD_ID)
+                .build()
+            dispatcher.root.addChild(node)
+            node
         }
 
         val setTogglePublicInventoryUseNode: LiteralCommandNode<ServerCommandSource> = CommandManager
@@ -26,8 +33,8 @@ object CommandManager {
             .executes { ctx ->
                 val player: ServerPlayerEntity = ctx.source.player ?: return@executes Command.SINGLE_SUCCESS
                 val isUsingPublicInventory: Boolean = player.getAttached(PublicEnderChest.USING_PUBLIC_INVENTORY) ?: return@executes Command.SINGLE_SUCCESS
-                val feedBackText: String = if (isUsingPublicInventory) "enabled" else "disabled"
-                player.sendMessage(Text.literal("Usage of public ender chest inventory is currently $feedBackText"))
+                val feedBackText: MutableText = if (isUsingPublicInventory) Text.literal("enabled").formatted(Formatting.GREEN) else Text.literal("disabled").formatted(Formatting.RED)
+                player.sendMessage(Text.literal("Usage of public ender chest inventory is currently ").append(feedBackText))
                 Command.SINGLE_SUCCESS
             }
             .build()
@@ -36,10 +43,10 @@ object CommandManager {
             .argument("toggle", BoolArgumentType.bool())
             .executes { ctx ->
                 val player: ServerPlayerEntity = ctx.source.player ?: return@executes Command.SINGLE_SUCCESS
-                val toggle: Boolean = BoolArgumentType.getBool(ctx, "toggle")
-                player.setAttached(PublicEnderChest.USING_PUBLIC_INVENTORY, toggle)
-                val feedBackText: String = if (toggle) "enabled" else "disabled"
-                player.sendMessage(Text.literal("Usage of public ender chest inventory has been $feedBackText"))
+                val usePublicInventory: Boolean = BoolArgumentType.getBool(ctx, "toggle")
+                player.setAttached(PublicEnderChest.USING_PUBLIC_INVENTORY, usePublicInventory)
+                val feedBackText: MutableText = if (usePublicInventory) Text.literal("enabled").formatted(Formatting.GREEN) else Text.literal("disabled").formatted(Formatting.RED)
+                player.sendMessage(Text.literal("Usage of public ender chest inventory has been ").append(feedBackText))
                 Command.SINGLE_SUCCESS
             }
             .build()
@@ -54,16 +61,10 @@ object CommandManager {
             }
             .build()
 
-        val parentNode: CommandNode<ServerCommandSource> = dispatcher.root.getChild(PublicEnderChest.MOD_ID) ?: run {
-            val node: LiteralCommandNode<ServerCommandSource> = CommandManager
-                .literal(PublicEnderChest.MOD_ID)
-                .build()
-            dispatcher.root.addChild(node)
-            node
-        }
         parentNode.addChild(setTogglePublicInventoryUseNode)
         setTogglePublicInventoryUseNode.addChild(togglePublicInventoryUseNodeArgumentNode)
         parentNode.addChild(openPublicInventoryNode)
+        DatabaseCommands.registerCommands(parentNode)
 
 
     }

@@ -13,6 +13,8 @@ import xd.arkosammy.monkeyconfig.settings.BooleanSetting
 import xd.arkosammy.monkeyconfig.settings.list.StringListSetting
 import xd.arkosammy.publicenderchest.PublicEnderChest
 import xd.arkosammy.publicenderchest.config.ConfigSettings
+import xd.arkosammy.publicenderchest.logging.InventoryInteractionLog
+import xd.arkosammy.publicenderchest.logging.InventoryInteractionType
 import xd.arkosammy.publicenderchest.util.SerializedItemStack
 
 class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = DefaultedList.ofSize(SLOT_SIZE, ItemStack.EMPTY)) : Inventory {
@@ -24,6 +26,8 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
             field = false
             return currentValue
         }
+
+    private var currentPlayerHandler: ServerPlayerEntity? = null
 
     override fun clear() {
         this.itemStacks.clear()
@@ -40,18 +44,48 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
         return true
     }
 
-    override fun getStack(slot: Int): ItemStack = if (slot in (0 until this.size())) this.itemStacks[slot] else ItemStack.EMPTY
-
-    override fun removeStack(slot: Int, amount: Int): ItemStack = Inventories.splitStack(this.itemStacks, slot, amount)
-
-    override fun removeStack(slot: Int): ItemStack = Inventories.removeStack(this.itemStacks, slot)
-
-    override fun setStack(slot: Int, stack: ItemStack?) {
-        this.itemStacks[slot] = stack
+    override fun onOpen(player: PlayerEntity?) {
+        super.onOpen(player)
+        this.currentPlayerHandler = player as? ServerPlayerEntity
     }
 
-    override fun markDirty() {
-        this.dirty = true
+    override fun onClose(player: PlayerEntity?) {
+        super.onClose(player)
+        this.currentPlayerHandler = null
+    }
+
+    override fun getStack(slot: Int): ItemStack =
+        if (slot in (0 until this.size())) this.itemStacks[slot] else ItemStack.EMPTY
+
+    override fun removeStack(slot: Int, amount: Int): ItemStack {
+        val splitStack: ItemStack = Inventories.splitStack(this.itemStacks, slot, amount)
+        val player: ServerPlayerEntity = currentPlayerHandler ?: return splitStack
+        val inventoryInteractionLog: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, splitStack, amount)
+        PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(inventoryInteractionLog, player.server)
+        return splitStack
+    }
+
+    override fun removeStack(slot: Int): ItemStack {
+        val removedStack: ItemStack = Inventories.removeStack(this.itemStacks, slot)
+        val player: ServerPlayerEntity = currentPlayerHandler ?: return removedStack
+        val inventoryInteractionLog: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, removedStack, removedStack.count)
+        PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(inventoryInteractionLog, player.server)
+        return removedStack
+    }
+
+    override fun setStack(slot: Int, stack: ItemStack) {
+        val previousStack: ItemStack = this.itemStacks[slot]
+        this.itemStacks[slot] = stack
+        val player: ServerPlayerEntity = currentPlayerHandler ?: return
+        if (!previousStack.isEmpty) {
+            val removeAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, previousStack.copy(), previousStack.count)
+            PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(removeAction, player.server)
+        }
+        if (!stack.isEmpty) {
+            val insertAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_INSERT, player, stack.copy(), stack.count)
+            PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(insertAction, player.server)
+
+        }
     }
 
     override fun canPlayerUse(player: PlayerEntity): Boolean {
@@ -74,6 +108,10 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
         }
         return true
 
+    }
+
+    override fun markDirty() {
+        this.dirty = true
     }
 
     companion object {

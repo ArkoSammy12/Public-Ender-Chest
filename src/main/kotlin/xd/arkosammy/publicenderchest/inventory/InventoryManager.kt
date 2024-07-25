@@ -17,8 +17,8 @@ interface InventoryManager {
 
     fun onServerStopping(server: MinecraftServer)
 
-    fun onBlockInteracted(player: PlayerEntity, world: World, hand: Hand, hitResult: BlockHitResult) : ActionResult
+    fun onBlockInteractedListener(player: PlayerEntity, world: World, hand: Hand, hitResult: BlockHitResult) : ActionResult
 
-    fun onItemInteracted(player: PlayerEntity, world: World, hand: Hand): TypedActionResult<ItemStack>
+    fun onItemInteractedListener(player: PlayerEntity, world: World, hand: Hand): TypedActionResult<ItemStack>
 
 }
