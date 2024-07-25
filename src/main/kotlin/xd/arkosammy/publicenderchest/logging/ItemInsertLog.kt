@@ -22,7 +22,7 @@ class ItemInsertLog(
             .setStyle(Style.EMPTY.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(timestamp.format(InventoryInteractionLog.DTF)))))
             .formatted(Formatting.DARK_AQUA)
         val playerNameText: MutableText = Text.literal("$playerName ")
-            .setStyle(Style.EMPTY.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(uuid))).withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid)))
+            .setStyle(Style.EMPTY.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("$uuid (Click to copy to clipboard)"))).withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid)))
             .formatted(Formatting.AQUA)
         val interactedInventoryText: MutableText = Text.literal("inserted ")
             .formatted(Formatting.GOLD)

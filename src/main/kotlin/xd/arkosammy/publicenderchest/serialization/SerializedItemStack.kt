@@ -1,4 +1,4 @@
-package xd.arkosammy.publicenderchest.util
+package xd.arkosammy.publicenderchest.serialization
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder

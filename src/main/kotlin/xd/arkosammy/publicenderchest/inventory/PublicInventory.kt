@@ -15,7 +15,7 @@ import xd.arkosammy.publicenderchest.PublicEnderChest
 import xd.arkosammy.publicenderchest.config.ConfigSettings
 import xd.arkosammy.publicenderchest.logging.InventoryInteractionLog
 import xd.arkosammy.publicenderchest.logging.InventoryInteractionType
-import xd.arkosammy.publicenderchest.util.SerializedItemStack
+import xd.arkosammy.publicenderchest.serialization.SerializedItemStack
 
 class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = DefaultedList.ofSize(SLOT_SIZE, ItemStack.EMPTY)) : Inventory {
 
