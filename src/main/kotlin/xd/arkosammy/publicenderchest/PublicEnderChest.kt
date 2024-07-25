@@ -30,7 +30,6 @@ import xd.arkosammy.publicenderchest.logging.InventoryDatabaseManager
 import xd.arkosammy.publicenderchest.util.Events
 import java.nio.file.Path
 
-// TODO: MAKE COMMANDS NOT NEED A PLAYER TO RUN FOR THOSE WHERE IT CAN BE DONE
 object PublicEnderChest : ModInitializer {
 
 	const val MOD_ID: String = "publicenderchest"
