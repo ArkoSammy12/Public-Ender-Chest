@@ -43,6 +43,20 @@ object DatabaseCommands {
             }
             .build()
 
+        val purgeDaysArgumentNode: ArgumentCommandNode<ServerCommandSource, Int> = CommandManager
+            .argument("entriesOlderThanDays", IntegerArgumentType.integer(1))
+            .requires { src -> src.hasPermissionLevel(4) }
+            .executes { ctx ->
+                val player: ServerPlayerEntity = ctx.source.playerOrThrow
+                val olderThanDaysValue: Int = IntegerArgumentType.getInteger(ctx, "entriesOlderThanDays")
+                player.sendMessage(Text.literal("Initiating purge...").formatted(Formatting.GRAY))
+                val deletedRows: Int = PublicEnderChest.DATABASE_MANAGER.purge(player.server, olderThanDaysValue)
+                val deletedRowsText: MutableText = Text.literal("$deletedRows").formatted(Formatting.AQUA)
+                player.sendMessage(Text.empty().append(Text.literal("Purged ")).append(deletedRowsText).append(Text.literal(" entries from the Public Ender Chest inventory database.")))
+                Command.SINGLE_SUCCESS
+            }
+            .build()
+
         val pageNode: LiteralCommandNode<ServerCommandSource> = CommandManager
             .literal("page")
             .requires { src -> src.hasPermissionLevel(4) }
@@ -153,6 +167,7 @@ object DatabaseCommands {
         rootNode.addChild(databaseNode)
 
         databaseNode.addChild(purgeNode)
+        purgeNode.addChild(purgeDaysArgumentNode)
 
         databaseNode.addChild(queryNode)
 

@@ -31,8 +31,6 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 
     @Shadow public abstract OptionalInt openHandledScreen(@Nullable NamedScreenHandlerFactory factory);
 
-    @Shadow public abstract boolean shouldDamagePlayer(PlayerEntity player);
-
     @Shadow @Final public MinecraftServer server;
 
     @Shadow public abstract void sendMessage(Text message);
