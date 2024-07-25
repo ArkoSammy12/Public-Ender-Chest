@@ -55,15 +55,15 @@ sealed interface InventoryInteractionLog {
             val hours: Long = duration.toHours() % 24
             val minutes: Long = duration.toMinutes() % 60
             val seconds: Long = duration.toSeconds() % 60
-            var result = "$seconds second(s) ago"
+            var result = "${seconds}s ago"
             if (minutes > 0) {
-               result = "$minutes minute(s) ago"
+               result = "${minutes}m ago"
             }
             if (hours > 0) {
-                result = "$hours hour(s) ago"
+                result = "${hours}h ago"
             }
             if (days > 0) {
-                result = "$days day(s) ago"
+                result = "${days}d ago"
             }
             return result
         }

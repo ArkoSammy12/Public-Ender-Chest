@@ -28,12 +28,10 @@ class ItemRemoveLog(
             .formatted(Formatting.YELLOW)
         val quantityText: MutableText = Text.literal("$quantity ")
             .formatted(Formatting.BLUE)
-        val itemText: MutableText = Text.literal("$itemStackId ")
+        val itemText: MutableText = Text.literal("$itemStackId")
             .formatted(Formatting.GREEN)
-        val closingText: MutableText = Text.literal(".")
-            .formatted(Formatting.GRAY)
 
-        return Text.empty().append(durationText).append(playerText).append(interactedInventoryText).append(quantityText).append(itemText).append(closingText)
+        return Text.empty().append(durationText).append(playerText).append(interactedInventoryText).append(quantityText).append(itemText)
     }
 
     override fun consumeDbConnection(connection: Connection) {

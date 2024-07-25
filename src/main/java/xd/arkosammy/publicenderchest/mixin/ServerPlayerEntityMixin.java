@@ -70,6 +70,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
         }
         results.sort(Comparator.comparing(InventoryInteractionLog::getTimestamp).reversed());
         cachedLogs.clear();
+        this.pageIndex = 0;
 
         // Paginate logs
         for (int i = 0; i < results.size(); i++) {
@@ -86,7 +87,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
     @Override
     public void publicenderchest$showPage() {
         MutableText headerText = Text.literal("-- Showing logs for Public Ender Chest Inventory --")
-                .formatted(Formatting.GREEN);
+                .formatted(Formatting.DARK_AQUA);
         MutableText logLines = Text.empty();
 
         Iterator<InventoryInteractionLog> logIterator = this.cachedLogs.get(this.pageIndex).iterator();
@@ -97,17 +98,17 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
         }
 
         MutableText footerPrefix = Text.literal("--- ")
-                .formatted(Formatting.GREEN);
+                .formatted(Formatting.DARK_AQUA);
         MutableText footerPreviousPage = Text.literal("<< ")
                 .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s database query page %d", PublicEnderChest.MOD_ID, this.pageIndex))))
-                .formatted(Formatting.DARK_GREEN);
+                .formatted(Formatting.BLUE);
         MutableText footerMiddle = Text.literal(String.format("Showing page [%d of %d] ", pageIndex + 1, this.cachedLogs.size()))
-                .formatted(Formatting.GREEN);
+                .formatted(Formatting.AQUA);
         MutableText footerNextPage = Text.literal(">> ")
                 .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s database query page %d", PublicEnderChest.MOD_ID, this.pageIndex + 2))))
-                .formatted(Formatting.DARK_GREEN);
+                .formatted(Formatting.BLUE);
         MutableText footerSuffix = Text.literal("---")
-                .formatted(Formatting.GREEN);
+                .formatted(Formatting.DARK_AQUA);
 
         MutableText footerText = Text.empty().append(footerPrefix).append(footerPreviousPage).append(footerMiddle).append(footerNextPage).append(footerSuffix);
 
