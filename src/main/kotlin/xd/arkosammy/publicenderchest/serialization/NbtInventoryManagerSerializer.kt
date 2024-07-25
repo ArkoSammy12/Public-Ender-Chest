@@ -18,7 +18,7 @@ import java.util.*
 class NbtInventoryManagerSerializer<T : InventoryManager>(override val inventoryManager: T) : InventoryManagerSerializer<T> {
 
     override fun writeManager(codec: Codec<in T>, fileName: String, server: MinecraftServer, logWrite: Boolean) {
-        val filePath: Path = getModFolderPath(server).resolve(fileName + FILE_SUFFIX)
+        val filePath: Path = getModFolderPath(server).resolve(getPathNameForFile(fileName))
         val encodedManager: DataResult<NbtElement> = codec.encodeStart(NbtOps.INSTANCE, inventoryManager)
         val encodedNbt: NbtElement = encodedManager.getOrThrow { e ->
             throw IllegalStateException("Error attempting to encode inventory manager: $e")
@@ -37,7 +37,7 @@ class NbtInventoryManagerSerializer<T : InventoryManager>(override val inventory
     }
 
     override fun readManager(codec: Codec<out T>, fileName: String, server: MinecraftServer): T? {
-        val filePath: Path = getModFolderPath(server).resolve(fileName + FILE_SUFFIX)
+        val filePath: Path = getModFolderPath(server).resolve(getPathNameForFile(fileName))
         try {
             if (!Files.exists(filePath)) {
                 PublicEnderChest.LOGGER.warn("Public ender chest file not found! Creating new one at $filePath")
@@ -57,7 +57,7 @@ class NbtInventoryManagerSerializer<T : InventoryManager>(override val inventory
 
     companion object {
 
-        private const val FILE_SUFFIX: String = ".nbt"
+        fun getPathNameForFile(fileName: String) : String = "$fileName.nbt"
 
     }
 

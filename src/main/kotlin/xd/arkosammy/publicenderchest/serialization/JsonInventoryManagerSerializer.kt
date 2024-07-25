@@ -17,7 +17,7 @@ import java.util.*
 class JsonInventoryManagerSerializer<T : InventoryManager>(override val inventoryManager: T) : InventoryManagerSerializer<T> {
 
     override fun writeManager(codec: Codec<in T>, fileName: String, server: MinecraftServer, logWrite: Boolean) {
-        val filePath: Path = getModFolderPath(server).resolve(fileName + FILE_SUFFIX)
+        val filePath: Path = getModFolderPath(server).resolve(getPathNameForFile(fileName))
         val encodedManager: DataResult<JsonElement> = codec.encodeStart(JsonOps.COMPRESSED, inventoryManager)
         val encodedJson: JsonElement = encodedManager.getOrThrow { e ->
             throw IllegalStateException("Error attempting to encode inventory manager: $e")
@@ -33,7 +33,7 @@ class JsonInventoryManagerSerializer<T : InventoryManager>(override val inventor
     }
 
     override fun readManager(codec: Codec<out T>, fileName: String, server: MinecraftServer): T? {
-        val filePath: Path = getModFolderPath(server).resolve(fileName + FILE_SUFFIX)
+        val filePath: Path = getModFolderPath(server).resolve(getPathNameForFile(fileName))
         try {
             if (!Files.exists(filePath)) {
                 PublicEnderChest.LOGGER.warn("Public ender chest file not found! Creating new one at $filePath")
@@ -55,7 +55,7 @@ class JsonInventoryManagerSerializer<T : InventoryManager>(override val inventor
 
     companion object {
 
-        private const val FILE_SUFFIX = ".json"
+        fun getPathNameForFile(fileName: String) : String = "$fileName.json"
 
     }
 

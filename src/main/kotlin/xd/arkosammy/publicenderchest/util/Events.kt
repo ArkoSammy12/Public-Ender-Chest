@@ -25,14 +25,12 @@ import xd.arkosammy.publicenderchest.util.ducks.ServerPlayerEntityDuck
 object Events {
 
     fun registerEvents() {
-
         CommandRegistrationCallback.EVENT.register(CommandManager::registerCommands)
         UseBlockCallback.EVENT.register(::onBlockInteracted)
         UseItemCallback.EVENT.register(::onItemInteracted)
         ServerTickEvents.END_SERVER_TICK.register(::onServerTick)
         PayloadTypeRegistry.playC2S().register(OpenPublicInventoryPayload.PACKET_ID, OpenPublicInventoryPayload.PACKET_CODEC)
         ServerPlayNetworking.registerGlobalReceiver(OpenPublicInventoryPayload.PACKET_ID, ::handleOpenInventoryPayload)
-
     }
 
     private fun onServerTick(server: MinecraftServer) {

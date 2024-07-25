@@ -109,18 +109,15 @@ class InventoryDatabaseManager(server: MinecraftServer) {
         return deletedRows
     }
 
-
     companion object {
 
         const val MAIN_TABLE_NAME = "public_inventory_interactions"
         private const val DATABASE_FILE_NAME = "${PublicEnderChest.MOD_ID}.db"
 
-        fun getDatabaseFileUrl(server: MinecraftServer) : String =
+        private fun getDatabaseFileUrl(server: MinecraftServer) : String =
             "jdbc:sqlite:${getModFolderPath(server).resolve(DATABASE_FILE_NAME)}"
 
     }
-
-
 
 }
 

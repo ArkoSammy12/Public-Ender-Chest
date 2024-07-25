@@ -33,16 +33,15 @@ import java.nio.file.Path
 object PublicEnderChest : ModInitializer {
 
 	const val MOD_ID: String = "publicenderchest"
-	const val PUBLIC_INVENTORY_FILE_NAME: String = "public-inventory"
 	val LOGGER: Logger = LoggerFactory.getLogger(MOD_ID)
 	val CONFIG_MANAGER: ConfigManager = TomlConfigManager(MOD_ID, SettingGroups.settingGroups, ConfigSettings.settingBuilders)
 	val INVENTORY_MANAGER: PublicInventoryManager = PublicInventoryManager()
-	val USING_PUBLIC_INVENTORY: AttachmentType<Boolean> = run<AttachmentType<Boolean>> {
+	lateinit var DATABASE_MANAGER: InventoryDatabaseManager
+		private set
+	val USING_PUBLIC_INVENTORY: AttachmentType<Boolean> = run {
 		val builder: AttachmentRegistry.Builder<Boolean> = AttachmentRegistryImpl.builder()
 		builder.copyOnDeath().persistent(Codec.BOOL).initializer {true}.buildAndRegister(Identifier.of(MOD_ID, "using_public_inventory"))
 	}
-	lateinit var DATABASE_MANAGER: InventoryDatabaseManager
-		private set
 
 	override fun onInitialize() {
 		DefaultConfigRegistrar.registerConfigManager(CONFIG_MANAGER)

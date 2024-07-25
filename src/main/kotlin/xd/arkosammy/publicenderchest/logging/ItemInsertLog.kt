@@ -18,10 +18,10 @@ class ItemInsertLog(
 
     override fun getLogText(): MutableText {
         val duration: Duration = Duration.between(timestamp, LocalDateTime.now())
-        val durationText: MutableText = Text.literal("${InventoryInteractionLog.formatElapsedTime(duration)} ")
+        val timestampText: MutableText = Text.literal("${InventoryInteractionLog.formatElapsedTime(duration)} ")
             .setStyle(Style.EMPTY.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(timestamp.format(InventoryInteractionLog.DTF)))))
             .formatted(Formatting.DARK_AQUA)
-        val playerText: MutableText = Text.literal("$playerName ")
+        val playerNameText: MutableText = Text.literal("$playerName ")
             .setStyle(Style.EMPTY.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(uuid))).withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid)))
             .formatted(Formatting.AQUA)
         val interactedInventoryText: MutableText = Text.literal("inserted ")
@@ -31,7 +31,7 @@ class ItemInsertLog(
         val itemText: MutableText = Text.literal("$itemStackId")
             .formatted(Formatting.GREEN)
 
-        return Text.empty().append(durationText).append(playerText).append(interactedInventoryText).append(quantityText).append(itemText)
+        return Text.empty().append(timestampText).append(playerNameText).append(interactedInventoryText).append(quantityText).append(itemText)
     }
 
     override fun consumeDbConnection(connection: Connection) {

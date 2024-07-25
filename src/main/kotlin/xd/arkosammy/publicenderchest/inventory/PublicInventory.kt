@@ -107,7 +107,6 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
             return false
         }
         return true
-
     }
 
     override fun markDirty() {

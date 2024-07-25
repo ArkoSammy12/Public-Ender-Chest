@@ -49,7 +49,7 @@ object DatabaseCommands {
             .build()
 
         val pageArgumentNode: ArgumentCommandNode<ServerCommandSource, Int> = CommandManager
-            .argument("page", IntegerArgumentType.integer())
+            .argument("page", IntegerArgumentType.integer(0))
             .requires { src -> src.hasPermissionLevel(4) }
             .executes { ctx ->
                 val player: ServerPlayerEntity = ctx.source.playerOrThrow

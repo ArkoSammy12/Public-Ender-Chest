@@ -4,7 +4,6 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.MutableText
 import net.minecraft.util.Identifier
@@ -32,7 +31,9 @@ sealed interface InventoryInteractionLog {
 
     companion object {
 
-        fun of(logActionType: InventoryInteractionType, player: ServerPlayerEntity, itemStack: ItemStack, quantity: Int) : InventoryInteractionLog {
+        val DTF: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy, hh:mm:ss a")
+
+        fun of(inventoryInteractionType: InventoryInteractionType, player: ServerPlayerEntity, itemStack: ItemStack, quantity: Int) : InventoryInteractionLog {
             val now: LocalDateTime = LocalDateTime.now()
             val playerName: String = player.name.string
             val uuid: String = player.uuid.toString()
@@ -44,7 +45,7 @@ sealed interface InventoryInteractionLog {
             } else {
                 itemStackRegistryKey.value
             }
-            return when (logActionType) {
+            return when (inventoryInteractionType) {
                 InventoryInteractionType.ITEM_REMOVE -> ItemRemoveLog(playerName, uuid, itemStackId, quantity, now)
                 InventoryInteractionType.ITEM_INSERT -> ItemInsertLog(playerName, uuid, itemStackId, quantity, now)
             }
@@ -67,8 +68,6 @@ sealed interface InventoryInteractionLog {
             }
             return result
         }
-
-        val DTF: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy, hh:mm:ss a")
 
     }
 

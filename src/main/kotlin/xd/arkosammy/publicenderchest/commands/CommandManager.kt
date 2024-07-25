@@ -66,7 +66,6 @@ object CommandManager {
         parentNode.addChild(openPublicInventoryNode)
         DatabaseCommands.registerCommands(parentNode)
 
-
     }
 
 }

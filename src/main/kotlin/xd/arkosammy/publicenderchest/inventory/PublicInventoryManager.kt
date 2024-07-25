@@ -27,17 +27,17 @@ class PublicInventoryManager(inputPublicInventory: PublicInventory = PublicInven
 
     override fun tick(server: MinecraftServer) {
         if (publicInventory.dirty) {
-            serializer.writeManager(CODEC, PublicEnderChest.PUBLIC_INVENTORY_FILE_NAME, server)
+            serializer.writeManager(CODEC, PUBLIC_INVENTORY_FILE_NAME, server)
         }
     }
 
     override fun onServerStarting(server: MinecraftServer) {
-        val inventoryManager: PublicInventoryManager = serializer.readManager(CODEC, PublicEnderChest.PUBLIC_INVENTORY_FILE_NAME, server) ?: return
+        val inventoryManager: PublicInventoryManager = serializer.readManager(CODEC, PUBLIC_INVENTORY_FILE_NAME, server) ?: return
         this.publicInventory = inventoryManager.publicInventory
     }
 
     override fun onServerStopping(server: MinecraftServer) {
-        serializer.writeManager(CODEC, PublicEnderChest.PUBLIC_INVENTORY_FILE_NAME, server, true)
+        serializer.writeManager(CODEC, PUBLIC_INVENTORY_FILE_NAME, server, true)
     }
 
     override fun onBlockInteractedListener(player: PlayerEntity, world: World, hand: Hand, hitResult: BlockHitResult): ActionResult {
@@ -85,6 +85,8 @@ class PublicInventoryManager(inputPublicInventory: PublicInventory = PublicInven
     }
 
     companion object {
+
+        private const val PUBLIC_INVENTORY_FILE_NAME: String = "public-inventory"
         val CODEC: Codec<PublicInventoryManager> = RecordCodecBuilder.create { instance ->
             instance.group(
                 PublicInventory.CODEC.fieldOf("public_inventory").forGetter { manager -> manager.publicInventory }
@@ -92,6 +94,7 @@ class PublicInventoryManager(inputPublicInventory: PublicInventory = PublicInven
                 PublicInventoryManager(publicInventory)
             }
         }
+
     }
 
 }
