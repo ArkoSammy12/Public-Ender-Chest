@@ -34,11 +34,11 @@ object DatabaseCommands {
             .literal("purge")
             .requires { src -> src.hasPermissionLevel(4) }
             .executes { ctx ->
-                val player: ServerPlayerEntity = ctx.source.playerOrThrow
-                player.sendMessage(Text.literal("Initiating purge...").formatted(Formatting.GRAY))
-                val deletedRows: Int = PublicEnderChest.DATABASE_MANAGER.purge(player.server, PublicEnderChest.CONFIG_MANAGER.getSettingValue<Int, NumberSetting<Int>>(ConfigSettings.PURGE_OLDER_THAN_X_DAYS.settingLocation))
+                val player: ServerPlayerEntity? = ctx.source.player
+                sendMessageToPlayerOrConsole(player, Text.literal("Initiating purge...").formatted(Formatting.GRAY), LogType.NORMAL)
+                val deletedRows: Int = PublicEnderChest.DATABASE_MANAGER.purge(ctx.source.server, PublicEnderChest.CONFIG_MANAGER.getSettingValue<Int, NumberSetting<Int>>(ConfigSettings.PURGE_OLDER_THAN_X_DAYS.settingLocation))
                 val deletedRowsText: MutableText = Text.literal("$deletedRows").formatted(Formatting.AQUA)
-                player.sendMessage(Text.empty().append(Text.literal("Purged ")).append(deletedRowsText).append(Text.literal(" entries from the Public Ender Chest inventory database.")))
+                sendMessageToPlayerOrConsole(player, Text.empty().append(Text.literal("Purged ")).append(deletedRowsText).append(Text.literal(" entries from the Public Ender Chest inventory database.")), LogType.NORMAL)
                 Command.SINGLE_SUCCESS
             }
             .build()
@@ -47,12 +47,12 @@ object DatabaseCommands {
             .argument("entriesOlderThanDays", IntegerArgumentType.integer(1))
             .requires { src -> src.hasPermissionLevel(4) }
             .executes { ctx ->
-                val player: ServerPlayerEntity = ctx.source.playerOrThrow
+                val player: ServerPlayerEntity? = ctx.source.player
                 val olderThanDaysValue: Int = IntegerArgumentType.getInteger(ctx, "entriesOlderThanDays")
-                player.sendMessage(Text.literal("Initiating purge...").formatted(Formatting.GRAY))
-                val deletedRows: Int = PublicEnderChest.DATABASE_MANAGER.purge(player.server, olderThanDaysValue)
+                sendMessageToPlayerOrConsole(player, Text.literal("Initiating purge...").formatted(Formatting.GRAY), LogType.NORMAL)
+                val deletedRows: Int = PublicEnderChest.DATABASE_MANAGER.purge(ctx.source.server, olderThanDaysValue)
                 val deletedRowsText: MutableText = Text.literal("$deletedRows").formatted(Formatting.AQUA)
-                player.sendMessage(Text.empty().append(Text.literal("Purged ")).append(deletedRowsText).append(Text.literal(" entries from the Public Ender Chest inventory database.")))
+                sendMessageToPlayerOrConsole(player, Text.empty().append(Text.literal("Purged ")).append(deletedRowsText).append(Text.literal(" entries from the Public Ender Chest inventory database.")), LogType.NORMAL)
                 Command.SINGLE_SUCCESS
             }
             .build()
@@ -180,6 +180,25 @@ object DatabaseCommands {
         queryWithHours.addChild(queryWithMinutes)
         queryWithMinutes.addChild(queryWithSeconds)
 
+    }
+
+    private fun sendMessageToPlayerOrConsole(player: ServerPlayerEntity?, text: MutableText, logType: LogType) {
+        if (player != null) {
+            player.sendMessage(text)
+        } else {
+            when (logType) {
+                LogType.NORMAL -> PublicEnderChest.LOGGER.info(text.string)
+                LogType.WARNING -> PublicEnderChest.LOGGER.warn(text.string)
+                LogType.ERROR -> PublicEnderChest.LOGGER.error(text.string)
+
+            }
+        }
+    }
+
+    private enum class LogType {
+        NORMAL,
+        WARNING,
+        ERROR
     }
 
 }
