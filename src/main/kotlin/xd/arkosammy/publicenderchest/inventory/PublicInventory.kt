@@ -2,6 +2,7 @@ package xd.arkosammy.publicenderchest.inventory
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
+import net.minecraft.component.ComponentMap
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.Inventories
 import net.minecraft.inventory.Inventory
@@ -16,6 +17,7 @@ import xd.arkosammy.publicenderchest.config.ConfigSettings
 import xd.arkosammy.publicenderchest.logging.InventoryInteractionLog
 import xd.arkosammy.publicenderchest.logging.InventoryInteractionType
 import xd.arkosammy.publicenderchest.serialization.SerializedItemStack
+import kotlin.math.abs
 
 class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = DefaultedList.ofSize(SLOT_SIZE, ItemStack.EMPTY)) : Inventory {
 
@@ -28,6 +30,7 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
         }
 
     private var currentPlayerHandler: ServerPlayerEntity? = null
+    private var previousItemStack: DefaultedList<ItemStack> = DefaultedList.copyOf(ItemStack.EMPTY, *this.itemStacks.map { stack -> stack.copy() }.toTypedArray())
 
     override fun clear() {
         this.itemStacks.clear()
@@ -57,35 +60,12 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
     override fun getStack(slot: Int): ItemStack =
         if (slot in (0 until this.size())) this.itemStacks[slot] else ItemStack.EMPTY
 
-    override fun removeStack(slot: Int, amount: Int): ItemStack {
-        val splitStack: ItemStack = Inventories.splitStack(this.itemStacks, slot, amount)
-        val player: ServerPlayerEntity = currentPlayerHandler ?: return splitStack
-        val inventoryInteractionLog: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, splitStack, amount)
-        PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(inventoryInteractionLog, player.server)
-        return splitStack
-    }
+    override fun removeStack(slot: Int, amount: Int): ItemStack = Inventories.splitStack(this.itemStacks, slot, amount)
 
-    override fun removeStack(slot: Int): ItemStack {
-        val removedStack: ItemStack = Inventories.removeStack(this.itemStacks, slot)
-        val player: ServerPlayerEntity = currentPlayerHandler ?: return removedStack
-        val inventoryInteractionLog: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, removedStack, removedStack.count)
-        PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(inventoryInteractionLog, player.server)
-        return removedStack
-    }
+    override fun removeStack(slot: Int): ItemStack = Inventories.removeStack(this.itemStacks, slot)
 
     override fun setStack(slot: Int, stack: ItemStack) {
-        val previousStack: ItemStack = this.itemStacks[slot]
         this.itemStacks[slot] = stack
-        val player: ServerPlayerEntity = currentPlayerHandler ?: return
-        if (!previousStack.isEmpty) {
-            val removeAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, previousStack.copy(), previousStack.count)
-            PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(removeAction, player.server)
-        }
-        if (!stack.isEmpty) {
-            val insertAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_INSERT, player, stack.copy(), stack.count)
-            PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(insertAction, player.server)
-
-        }
     }
 
     override fun canPlayerUse(player: PlayerEntity): Boolean {
@@ -111,6 +91,57 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
 
     override fun markDirty() {
         this.dirty = true
+
+        val player: ServerPlayerEntity? = this.currentPlayerHandler
+        if (player == null) {
+            this.updatePreviousStacks()
+            return
+        }
+
+        for (i in 0 until this.itemStacks.size) {
+
+            val previousStack: ItemStack = this.previousItemStack[i]
+            val currentStack: ItemStack = this.itemStacks[i]
+
+            // If the item stacks are of the same item, and
+            // have the same components and count, then this slot remained unchanged
+            if (ItemStack.areEqual(previousStack, currentStack)) {
+                continue
+            }
+
+            // If the item stacks are of the same item and have the same components,
+            // but are different in count, then log based on the count difference
+            if (ItemStack.areItemsAndComponentsEqual(previousStack,  currentStack)) {
+                val countDifference: Int = currentStack.count - previousStack.count
+                if (countDifference > 0) {
+                    val insertAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_INSERT, player, currentStack.copy(), abs(countDifference))
+                    PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(insertAction, player.server)
+                } else if (countDifference < 0) {
+                    val removeAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, currentStack.copy(), abs(countDifference))
+                    PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(removeAction, player.server)
+                }
+                continue
+            }
+
+            // If the item stacks differ in components and count,
+            // then the item stacks cannot be combined,
+            // so a complete replacement of the stack has occurred in this slot.
+            // Log a removal and insertion based on the previous and current items stacks for the slot.
+            if (!previousStack.isEmpty) {
+                val removeAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, previousStack.copy(), previousStack.count)
+                PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(removeAction, player.server)
+            }
+            if (!currentStack.isEmpty) {
+                val insertAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_INSERT, player, currentStack.copy(), currentStack.count)
+                PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(insertAction, player.server)
+            }
+
+        }
+        this.updatePreviousStacks()
+    }
+
+    private fun updatePreviousStacks() {
+        this.previousItemStack = DefaultedList.copyOf(ItemStack.EMPTY, *this.itemStacks.map { stack -> stack.copy() }.toTypedArray())
     }
 
     companion object {
