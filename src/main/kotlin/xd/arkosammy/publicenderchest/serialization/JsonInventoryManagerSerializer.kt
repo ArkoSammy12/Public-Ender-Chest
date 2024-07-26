@@ -46,7 +46,6 @@ class JsonInventoryManagerSerializer<T : InventoryManager>(override val inventor
         try {
             if (!Files.exists(filePath)) {
                 PublicEnderChest.LOGGER.warn("Public ender chest file not found! Creating new one at $filePath")
-                Files.createDirectory(getModFolderPath(server))
                 Files.createFile(filePath)
                 return null
             }

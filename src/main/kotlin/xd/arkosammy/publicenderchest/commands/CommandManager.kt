@@ -56,7 +56,7 @@ object CommandManager {
             .requires { src -> src.hasPermissionLevel(4) }
             .executes { ctx ->
                 val player: ServerPlayerEntity = ctx.source.player ?: return@executes Command.SINGLE_SUCCESS
-                (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`("Public Inventory", PublicEnderChest.INVENTORY_MANAGER.publicInventory)
+                (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`(PublicEnderChest.PUBLIC_INVENTORY_NAME, PublicEnderChest.INVENTORY_MANAGER.publicInventory)
                 Command.SINGLE_SUCCESS
             }
             .build()

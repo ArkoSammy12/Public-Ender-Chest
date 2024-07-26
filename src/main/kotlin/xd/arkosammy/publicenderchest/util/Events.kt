@@ -46,7 +46,7 @@ object Events {
         if (!PublicEnderChest.INVENTORY_MANAGER.publicInventory.canPlayerUse(player)) {
             return
         }
-        (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`("Public Inventory", PublicEnderChest.INVENTORY_MANAGER.publicInventory)
+        (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`(PublicEnderChest.PUBLIC_INVENTORY_NAME, PublicEnderChest.INVENTORY_MANAGER.publicInventory)
     }
 
     private fun onBlockInteracted(player: PlayerEntity, world: World, hand: Hand, hitResult: BlockHitResult) : ActionResult {

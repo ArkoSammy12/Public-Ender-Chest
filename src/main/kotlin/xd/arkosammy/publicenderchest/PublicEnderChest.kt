@@ -28,11 +28,13 @@ import xd.arkosammy.publicenderchest.config.SettingGroups
 import xd.arkosammy.publicenderchest.inventory.PublicInventoryManager
 import xd.arkosammy.publicenderchest.logging.InventoryDatabaseManager
 import xd.arkosammy.publicenderchest.util.Events
+import java.nio.file.Files
 import java.nio.file.Path
 
 object PublicEnderChest : ModInitializer {
 
 	const val MOD_ID: String = "publicenderchest"
+	const val PUBLIC_INVENTORY_NAME = "Public Ender Chest"
 	val LOGGER: Logger = LoggerFactory.getLogger(MOD_ID)
 	val CONFIG_MANAGER: ConfigManager = TomlConfigManager(MOD_ID, SettingGroups.settingGroups, ConfigSettings.settingBuilders)
 	val INVENTORY_MANAGER: PublicInventoryManager = PublicInventoryManager()
@@ -62,7 +64,17 @@ object PublicEnderChest : ModInitializer {
 
 }
 
-fun getModFolderPath(server: MinecraftServer) : Path = server.getSavePath(WorldSavePath.ROOT).resolve(MOD_ID)
+fun getModFolderPath(server: MinecraftServer) : Path {
+	val path: Path = server.getSavePath(WorldSavePath.ROOT).resolve(MOD_ID)
+	try {
+		if (!Files.exists(path)) {
+			Files.createDirectory(path)
+		}
+	} catch (e: Exception) {
+		PublicEnderChest.LOGGER.error("Error attempting to create mod directory: $e")
+	}
+	return path
+}
 
 fun BlockState.isEnderChest() : Boolean = this.isOf(Blocks.ENDER_CHEST)
 fun ItemStack.isEnderChest() : Boolean {

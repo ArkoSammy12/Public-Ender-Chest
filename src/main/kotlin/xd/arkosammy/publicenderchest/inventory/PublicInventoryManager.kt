@@ -58,7 +58,7 @@ class PublicInventoryManager(inputPublicInventory: PublicInventory = PublicInven
         if (!publicInventory.canPlayerUse(player)) {
             return ActionResult.PASS
         }
-        (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`("Public Inventory", publicInventory)
+        (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`(PublicEnderChest.PUBLIC_INVENTORY_NAME, publicInventory)
         return ActionResult.SUCCESS
     }
 
@@ -80,7 +80,7 @@ class PublicInventoryManager(inputPublicInventory: PublicInventory = PublicInven
         if (!publicInventory.canPlayerUse(player)) {
             return TypedActionResult.pass(heldStack)
         }
-        (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`("Public Inventory", publicInventory)
+        (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`(PublicEnderChest.PUBLIC_INVENTORY_NAME, publicInventory)
         return TypedActionResult.success(heldStack)
     }
 
