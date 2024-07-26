@@ -1,17 +1,13 @@
 package xd.arkosammy.publicenderchest.logging
 
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.registry.Registries
-import net.minecraft.registry.RegistryKey
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.MutableText
-import net.minecraft.util.Identifier
-import xd.arkosammy.publicenderchest.PublicEnderChest
 import java.sql.Connection
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.abs
 
 sealed interface InventoryInteractionLog {
 
@@ -19,9 +15,7 @@ sealed interface InventoryInteractionLog {
 
     val uuid: String
 
-    val itemStackId: Identifier
-
-    val quantity: Int
+    val itemStack: ItemStack
 
     val timestamp: LocalDateTime
 
@@ -33,21 +27,13 @@ sealed interface InventoryInteractionLog {
 
         val DTF: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy, hh:mm:ss a")
 
-        fun of(inventoryInteractionType: InventoryInteractionType, player: ServerPlayerEntity, itemStack: ItemStack, quantity: Int) : InventoryInteractionLog {
+        fun of(inventoryInteractionType: InventoryInteractionType, player: ServerPlayerEntity, itemStack: ItemStack, count: Int = itemStack.count) : InventoryInteractionLog {
             val now: LocalDateTime = LocalDateTime.now()
             val playerName: String = player.name.string
             val uuid: String = player.uuid.toString()
-            val item: Item = itemStack.item
-            val itemStackRegistryKey: RegistryKey<Item>? = Registries.ITEM.getKey(item).orElse(null)
-            val itemStackId: Identifier = if (itemStackRegistryKey == null) {
-                PublicEnderChest.LOGGER.error("Error logging Public Ender Chest interaction: Unknown Item \"$item\"")
-                Identifier.ofVanilla("unknown_item")
-            } else {
-                itemStackRegistryKey.value
-            }
             return when (inventoryInteractionType) {
-                InventoryInteractionType.ITEM_REMOVE -> ItemRemoveLog(playerName, uuid, itemStackId, quantity, now)
-                InventoryInteractionType.ITEM_INSERT -> ItemInsertLog(playerName, uuid, itemStackId, quantity, now)
+                InventoryInteractionType.ITEM_REMOVE -> ItemRemoveLog(playerName, uuid, itemStack.copy().also { s -> s.count = abs(count) }, now)
+                InventoryInteractionType.ITEM_INSERT -> ItemInsertLog(playerName, uuid, itemStack.copy().also { s -> s.count = abs(count) }, now)
             }
         }
 

@@ -1,5 +1,14 @@
 package xd.arkosammy.publicenderchest.logging
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
+import com.mojang.serialization.DataResult
+import com.mojang.serialization.JsonOps
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraft.registry.Registries
+import net.minecraft.registry.RegistryKey
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.Identifier
 import xd.arkosammy.publicenderchest.PublicEnderChest
@@ -8,6 +17,7 @@ import java.sql.DriverManager
 import java.sql.Statement
 import java.sql.Timestamp
 import java.time.LocalDateTime
+import java.util.*
 
 class InventoryDatabaseManager(server: MinecraftServer) {
 
@@ -18,10 +28,9 @@ class InventoryDatabaseManager(server: MinecraftServer) {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             player TEXT,
             uuid TEXT,
-            item TEXT,
-            quantity INTEGER,
+            itemStack TEXT,
             timestamp TIMESTAMP,
-            interaction_type TEXT
+            interactionType TEXT
         );"""
 
         val url: String = getDatabaseFileUrl(server)
@@ -67,18 +76,13 @@ class InventoryDatabaseManager(server: MinecraftServer) {
                         while (resultSet.next()) {
                             val playerName: String = resultSet.getString("player")
                             val uuid: String = resultSet.getString("uuid")
-                            val itemString: String = resultSet.getString("item")
-                            val quantity: Int = resultSet.getInt("quantity")
+                            val itemString: String = resultSet.getString("itemStack")
                             val timeStamp: LocalDateTime = resultSet.getTimestamp("timestamp").toLocalDateTime()
-                            val interactionType: String = resultSet.getString("interaction_type")
-                            val itemId: Identifier? = Identifier.tryParse(itemString)
-                            if (itemId == null) {
-                                PublicEnderChest.LOGGER.error("Could not retrieve database entry due to invalid Item identifier: \"${itemString}\"")
-                                continue
-                            }
+                            val interactionType: String = resultSet.getString("interactionType")
+                            val itemStack: ItemStack = getItemStackFromJsonString(itemString) ?: continue
                             val inventoryInteractionLog: InventoryInteractionLog = when (interactionType) {
-                                InventoryInteractionType.ITEM_REMOVE.asString() -> ItemRemoveLog(playerName, uuid, itemId, quantity, timeStamp)
-                                InventoryInteractionType.ITEM_INSERT.asString() -> ItemInsertLog(playerName, uuid, itemId, quantity, timeStamp)
+                                InventoryInteractionType.ITEM_REMOVE.asString() -> ItemRemoveLog(playerName, uuid, itemStack, timeStamp)
+                                InventoryInteractionType.ITEM_INSERT.asString() -> ItemInsertLog(playerName, uuid, itemStack, timeStamp)
                                 else -> continue
                             }
                             results.add(inventoryInteractionLog)
@@ -120,4 +124,47 @@ class InventoryDatabaseManager(server: MinecraftServer) {
     }
 
 }
+
+fun ItemStack.getJsonString() : String? {
+    val encodedStack: DataResult<JsonElement> = ItemStack.CODEC.encodeStart(JsonOps.COMPRESSED, this)
+    val jsonOptional: Optional<JsonElement> = encodedStack.resultOrPartial { e ->
+        PublicEnderChest.LOGGER.error("Error attempting to log Item stack data: $e")
+    }
+    if (jsonOptional.isEmpty) {
+        return null
+    }
+    val jsonElement: JsonElement = jsonOptional.get()
+    val gson = Gson()
+    return gson.toJson(jsonElement)
+}
+
+fun getItemStackFromJsonString(jsonString: String) : ItemStack? {
+    try {
+        val jsonElement: JsonElement = JsonParser.parseString(jsonString)
+        val decodedStack: DataResult<ItemStack> = ItemStack.CODEC.parse(JsonOps.COMPRESSED, jsonElement)
+        val itemStackOptional: Optional<ItemStack> = decodedStack.resultOrPartial { e ->
+            PublicEnderChest.LOGGER.error("Error attempting to read Item stack from database: $e")
+        }
+        if (itemStackOptional.isEmpty) {
+            return null
+        }
+        return itemStackOptional.get()
+    } catch (e: Exception) {
+        PublicEnderChest.LOGGER.error("Error attempting to read Item stack from database: $e")
+        return null
+    }
+
+}
+
+fun ItemStack.getIdentifier() : Identifier {
+    val itemStackRegistryKey: RegistryKey<Item>? = Registries.ITEM.getKey(this.item).orElse(null)
+    val itemStackId: Identifier = if (itemStackRegistryKey == null) {
+        PublicEnderChest.LOGGER.error("Error logging Public Ender Chest interaction: Unknown Item \"$item\"")
+        Identifier.ofVanilla("unknown_item_identifier")
+    } else {
+        itemStackRegistryKey.value
+    }
+    return itemStackId
+}
+
 

@@ -2,7 +2,6 @@ package xd.arkosammy.publicenderchest.inventory
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.component.ComponentMap
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.Inventories
 import net.minecraft.inventory.Inventory
@@ -17,7 +16,6 @@ import xd.arkosammy.publicenderchest.config.ConfigSettings
 import xd.arkosammy.publicenderchest.logging.InventoryInteractionLog
 import xd.arkosammy.publicenderchest.logging.InventoryInteractionType
 import xd.arkosammy.publicenderchest.serialization.SerializedItemStack
-import kotlin.math.abs
 
 class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = DefaultedList.ofSize(SLOT_SIZE, ItemStack.EMPTY)) : Inventory {
 
@@ -114,10 +112,10 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
             if (ItemStack.areItemsAndComponentsEqual(previousStack,  currentStack)) {
                 val countDifference: Int = currentStack.count - previousStack.count
                 if (countDifference > 0) {
-                    val insertAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_INSERT, player, currentStack.copy(), abs(countDifference))
+                    val insertAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_INSERT, player, currentStack, countDifference)
                     PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(insertAction, player.server)
                 } else if (countDifference < 0) {
-                    val removeAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, currentStack.copy(), abs(countDifference))
+                    val removeAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, currentStack, countDifference)
                     PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(removeAction, player.server)
                 }
                 continue
@@ -128,11 +126,11 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
             // so a complete replacement of the stack has occurred in this slot.
             // Log a removal and insertion based on the previous and current items stacks for the slot.
             if (!previousStack.isEmpty) {
-                val removeAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, previousStack.copy(), previousStack.count)
+                val removeAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_REMOVE, player, previousStack)
                 PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(removeAction, player.server)
             }
             if (!currentStack.isEmpty) {
-                val insertAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_INSERT, player, currentStack.copy(), currentStack.count)
+                val insertAction: InventoryInteractionLog = InventoryInteractionLog.of(InventoryInteractionType.ITEM_INSERT, player, currentStack)
                 PublicEnderChest.DATABASE_MANAGER.logInventoryInteraction(insertAction, player.server)
             }
 
