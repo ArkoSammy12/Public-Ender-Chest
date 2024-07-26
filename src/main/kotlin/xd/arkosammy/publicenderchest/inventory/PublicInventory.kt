@@ -27,7 +27,7 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
             return currentValue
         }
 
-    private var currentPlayerHandler: ServerPlayerEntity? = null
+    var currentPlayerHandler: ServerPlayerEntity? = null
     private var previousItemStack: DefaultedList<ItemStack> = DefaultedList.copyOf(ItemStack.EMPTY, *this.itemStacks.map { stack -> stack.copy() }.toTypedArray())
 
     override fun clear() {
@@ -43,16 +43,6 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
             }
         }
         return true
-    }
-
-    override fun onOpen(player: PlayerEntity?) {
-        super.onOpen(player)
-        this.currentPlayerHandler = player as? ServerPlayerEntity
-    }
-
-    override fun onClose(player: PlayerEntity?) {
-        super.onClose(player)
-        this.currentPlayerHandler = null
     }
 
     override fun getStack(slot: Int): ItemStack =
