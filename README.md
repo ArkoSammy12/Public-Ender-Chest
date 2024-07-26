@@ -1,6 +1,6 @@
-<div style="text-align: center;">
+<center>
     <img src="https://i.imgur.com/SxdRC9A.png">
-</div>
+</center>
 
 # Public Ender Chest
 This server-side, configurable Fabric Minecraft mod adds a new public inventory accessible via Ender Chest blocks.
