@@ -9,6 +9,7 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
+import net.minecraft.registry.RegistryWrapper
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.Identifier
 import xd.arkosammy.publicenderchest.PublicEnderChest
@@ -79,7 +80,7 @@ class InventoryDatabaseManager(server: MinecraftServer) {
                             val itemString: String = resultSet.getString("itemStack")
                             val timeStamp: LocalDateTime = resultSet.getTimestamp("timestamp").toLocalDateTime()
                             val interactionType: String = resultSet.getString("interactionType")
-                            val itemStack: ItemStack = getItemStackFromJsonString(itemString) ?: continue
+                            val itemStack: ItemStack = getItemStackFromJsonString(itemString, server.registryManager) ?: continue
                             val inventoryInteractionLog: InventoryInteractionLog = when (interactionType) {
                                 InventoryInteractionType.ITEM_REMOVE.asString() -> ItemRemoveLog(playerName, uuid, itemStack, timeStamp)
                                 InventoryInteractionType.ITEM_INSERT.asString() -> ItemInsertLog(playerName, uuid, itemStack, timeStamp)
@@ -125,8 +126,8 @@ class InventoryDatabaseManager(server: MinecraftServer) {
 
 }
 
-fun ItemStack.getJsonString() : String? {
-    val encodedStack: DataResult<JsonElement> = ItemStack.CODEC.encodeStart(JsonOps.COMPRESSED, this)
+fun ItemStack.getJsonString(registries: RegistryWrapper.WrapperLookup) : String? {
+    val encodedStack: DataResult<JsonElement> = ItemStack.CODEC.encodeStart(registries.getOps(JsonOps.COMPRESSED), this)
     val jsonOptional: Optional<JsonElement> = encodedStack.resultOrPartial { e ->
         PublicEnderChest.LOGGER.error("Error attempting to log Item stack data: $e")
     }
@@ -138,10 +139,10 @@ fun ItemStack.getJsonString() : String? {
     return gson.toJson(jsonElement)
 }
 
-fun getItemStackFromJsonString(jsonString: String) : ItemStack? {
+fun getItemStackFromJsonString(jsonString: String, registries: RegistryWrapper.WrapperLookup) : ItemStack? {
     try {
         val jsonElement: JsonElement = JsonParser.parseString(jsonString)
-        val decodedStack: DataResult<ItemStack> = ItemStack.CODEC.parse(JsonOps.COMPRESSED, jsonElement)
+        val decodedStack: DataResult<ItemStack> = ItemStack.CODEC.parse(registries.getOps(JsonOps.COMPRESSED), jsonElement)
         val itemStackOptional: Optional<ItemStack> = decodedStack.resultOrPartial { e ->
             PublicEnderChest.LOGGER.error("Error attempting to read Item stack from database: $e")
         }

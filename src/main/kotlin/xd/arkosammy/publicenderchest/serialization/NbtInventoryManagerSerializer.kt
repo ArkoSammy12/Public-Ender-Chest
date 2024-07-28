@@ -19,7 +19,7 @@ class NbtInventoryManagerSerializer<T : InventoryManager>(override val inventory
 
     override fun writeManager(codec: Codec<in T>, fileName: String, server: MinecraftServer, logWrite: Boolean) {
         val filePath: Path = getModFolderPath(server).resolve(getPathNameForFile(fileName))
-        val encodedManager: DataResult<NbtElement> = codec.encodeStart(NbtOps.INSTANCE, inventoryManager)
+        val encodedManager: DataResult<NbtElement> = codec.encodeStart(server.registryManager.getOps(NbtOps.INSTANCE), inventoryManager)
         val encodedNbtOptional: Optional<NbtElement> = encodedManager.resultOrPartial { e ->
             PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: $e")
         }
@@ -51,7 +51,7 @@ class NbtInventoryManagerSerializer<T : InventoryManager>(override val inventory
                 return null
             }
             val nbtCompound: NbtCompound = NbtIo.readCompressed(filePath, NbtSizeTracker.ofUnlimitedBytes())
-            val decodedManager: DataResult<out T> = codec.parse(NbtOps.INSTANCE, nbtCompound)
+            val decodedManager: DataResult<out T> = codec.parse(server.registryManager.getOps(NbtOps.INSTANCE), nbtCompound)
             val optionalManager: Optional<out T> = decodedManager.resultOrPartial { e -> PublicEnderChest.LOGGER.error("Error reading public inventory manager file $filePath : $e") }
             return optionalManager.get()
         } catch (e: Exception) {

@@ -18,7 +18,7 @@ class JsonInventoryManagerSerializer<T : InventoryManager>(override val inventor
 
     override fun writeManager(codec: Codec<in T>, fileName: String, server: MinecraftServer, logWrite: Boolean) {
         val filePath: Path = getModFolderPath(server).resolve(getPathNameForFile(fileName))
-        val encodedManager: DataResult<JsonElement> = codec.encodeStart(JsonOps.COMPRESSED, inventoryManager)
+        val encodedManager: DataResult<JsonElement> = codec.encodeStart(server.registryManager.getOps(JsonOps.COMPRESSED), inventoryManager)
         val encodedJsonOptional: Optional<JsonElement> = encodedManager.resultOrPartial { e ->
             PublicEnderChest.LOGGER.error("Error attempting to serialize Public Ender Chest inventory: $e")
         }
@@ -51,7 +51,7 @@ class JsonInventoryManagerSerializer<T : InventoryManager>(override val inventor
             }
             Files.newBufferedReader(filePath).use { br ->
                 val jsonElement: JsonElement = JsonParser.parseReader(br)
-                val decodedManager: DataResult<out T> = codec.parse(JsonOps.COMPRESSED, jsonElement)
+                val decodedManager: DataResult<out T> = codec.parse(server.registryManager.getOps(JsonOps.COMPRESSED), jsonElement)
                 val optionalManager: Optional<out T> = decodedManager.resultOrPartial { e -> PublicEnderChest.LOGGER.error("Error reading public inventory manager file $filePath : $e") }
                 return optionalManager.get()
             }
