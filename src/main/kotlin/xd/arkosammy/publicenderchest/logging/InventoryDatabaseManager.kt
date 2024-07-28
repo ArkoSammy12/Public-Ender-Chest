@@ -52,7 +52,7 @@ class InventoryDatabaseManager(server: MinecraftServer) {
         val url: String = getDatabaseFileUrl(server)
         try {
             DriverManager.getConnection(url).use { c ->
-                inventoryInteractionLog.consumeDbConnection(c)
+                inventoryInteractionLog.consumeDbConnection(c, server.registryManager)
             }
         } catch (e: Exception) {
             PublicEnderChest.LOGGER.error("Error attempting to log to Public Ender Chest database: $e")

@@ -1,6 +1,7 @@
 package xd.arkosammy.publicenderchest.logging
 
 import net.minecraft.item.ItemStack
+import net.minecraft.registry.RegistryWrapper
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.MutableText
 import java.sql.Connection
@@ -21,7 +22,7 @@ sealed interface InventoryInteractionLog {
 
     fun getLogText() : MutableText
 
-    fun consumeDbConnection(connection: Connection)
+    fun consumeDbConnection(connection: Connection, registries: RegistryWrapper.WrapperLookup)
 
     companion object {
 

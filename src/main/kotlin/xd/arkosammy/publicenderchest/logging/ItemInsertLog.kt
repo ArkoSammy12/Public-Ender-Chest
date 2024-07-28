@@ -1,6 +1,7 @@
 package xd.arkosammy.publicenderchest.logging
 
 import net.minecraft.item.ItemStack
+import net.minecraft.registry.RegistryWrapper
 import net.minecraft.text.*
 import net.minecraft.util.Formatting
 import java.sql.Connection
@@ -34,8 +35,8 @@ class ItemInsertLog(
         return Text.empty().append(timestampText).append(playerNameText).append(interactedInventoryText).append(quantityText).append(itemText)
     }
 
-    override fun consumeDbConnection(connection: Connection) {
-        val itemStackJson: String = this.itemStack.getJsonString() ?: return
+    override fun consumeDbConnection(connection: Connection, registries: RegistryWrapper.WrapperLookup) {
+        val itemStackJson: String = this.itemStack.getJsonString(registries) ?: return
         connection.prepareStatement("INSERT INTO ${InventoryDatabaseManager.MAIN_TABLE_NAME} (player, uuid, itemStack, timestamp, interactionType) VALUES (?, ?, ?, ?, ?)").use { statement ->
             statement.setString(1, playerName)
             statement.setString(2, uuid)
