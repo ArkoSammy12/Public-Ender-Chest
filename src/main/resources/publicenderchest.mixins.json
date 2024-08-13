@@ -1,11 +1,13 @@
 {
-	"required": true,
-	"package": "xd.arkosammy.publicenderchest.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ServerPlayerEntityMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "xd.arkosammy.publicenderchest.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ItemStackMixin",
+    "ServerPlayerEntityMixin",
+    "ServerPlayerEntitySyncHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }

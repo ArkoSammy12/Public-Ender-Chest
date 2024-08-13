@@ -39,4 +39,34 @@ class CustomGenericContainerScreenHandler(
         inventory.currentPlayerHandler = null
     }
 
+
+    override fun sendContentUpdates() {
+        val inventory: Inventory = this.inventory
+        if (inventory !is PublicInventory) {
+            super.sendContentUpdates()
+            return
+        }
+        try {
+            inventory.addDisplayTooltips()
+            super.sendContentUpdates()
+        } finally {
+            inventory.removeDisplayTooltips()
+        }
+    }
+
+
+    override fun updateToClient() {
+        val inventory: Inventory = this.inventory
+        if (inventory !is PublicInventory) {
+            super.updateToClient()
+            return
+        }
+        try {
+            inventory.addDisplayTooltips()
+            super.updateToClient()
+        } finally {
+            inventory.removeDisplayTooltips()
+        }
+    }
+
 }

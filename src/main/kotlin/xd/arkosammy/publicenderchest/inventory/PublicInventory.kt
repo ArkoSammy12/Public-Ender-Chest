@@ -2,11 +2,16 @@ package xd.arkosammy.publicenderchest.inventory
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
+import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.LoreComponent
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.Inventories
 import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemStack
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.text.MutableText
+import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 import net.minecraft.util.collection.DefaultedList
 import xd.arkosammy.monkeyconfig.managers.getSettingValue
 import xd.arkosammy.monkeyconfig.settings.BooleanSetting
@@ -16,6 +21,10 @@ import xd.arkosammy.publicenderchest.config.ConfigSettings
 import xd.arkosammy.publicenderchest.logging.InventoryInteractionLog
 import xd.arkosammy.publicenderchest.logging.InventoryInteractionType
 import xd.arkosammy.publicenderchest.serialization.SerializedItemStack
+import xd.arkosammy.publicenderchest.util.CustomMutableText
+import xd.arkosammy.publicenderchest.util.ducks.ItemStackDuck
+import java.time.Duration
+import java.time.LocalDateTime
 
 class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = DefaultedList.ofSize(SLOT_SIZE, ItemStack.EMPTY)) : Inventory {
 
@@ -38,7 +47,7 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
 
     override fun isEmpty(): Boolean {
         for (stack: ItemStack in this.itemStacks) {
-            if (!itemStacks.isEmpty()) {
+            if (!stack.isEmpty) {
                 return false
             }
         }
@@ -48,12 +57,20 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
     override fun getStack(slot: Int): ItemStack =
         if (slot in (0 until this.size())) this.itemStacks[slot] else ItemStack.EMPTY
 
-    override fun removeStack(slot: Int, amount: Int): ItemStack = Inventories.splitStack(this.itemStacks, slot, amount)
+    override fun removeStack(slot: Int, amount: Int): ItemStack =
+        Inventories.splitStack(this.itemStacks, slot, amount)
 
-    override fun removeStack(slot: Int): ItemStack = Inventories.removeStack(this.itemStacks, slot)
+
+    override fun removeStack(slot: Int): ItemStack =
+        Inventories.removeStack(this.itemStacks, slot)
 
     override fun setStack(slot: Int, stack: ItemStack) {
         this.itemStacks[slot] = stack
+        if (stack.isEmpty) {
+            return
+        }
+        (stack as ItemStackDuck).`publicenderchest$setInsertedTime`(LocalDateTime.now())
+        (stack as ItemStackDuck).`publicenderchest$setInserterName`(this.currentPlayerHandler?.name ?: return)
     }
 
     override fun canPlayerUse(player: PlayerEntity): Boolean {
@@ -76,6 +93,57 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
         }
         return true
     }
+
+    fun addDisplayTooltips() {
+        for (itemStack: ItemStack in this.itemStacks) {
+            if (itemStack.isEmpty) {
+                continue
+            }
+            val inserterName: Text = (itemStack as ItemStackDuck).`publicenderchest$getInserterName`() ?: continue
+            var infoText: Text = CustomMutableText(Text.empty().append(Text.literal("Inserted by ")).append(MutableText.of(inserterName.content).formatted(Formatting.ITALIC)))
+            val insertedTime: LocalDateTime? = (itemStack as ItemStackDuck).`publicenderchest$getInsertedTime`()
+            if (insertedTime != null) {
+                val duration: Duration = Duration.between(insertedTime, LocalDateTime.now())
+                val elapsedTime: String = InventoryInteractionLog.formatElapsedTime(duration)
+                infoText = CustomMutableText(Text.empty().append(infoText).append(Text.literal(" $elapsedTime")))
+            }
+            val loreComponent: LoreComponent? = itemStack[DataComponentTypes.LORE]
+            val newLoreComponent: LoreComponent = if (loreComponent != null) {
+                LoreComponent(loreComponent.lines.toMutableList().also { lines ->
+                    lines.add(infoText)
+                }.toList(), loreComponent.styledLines)
+            } else {
+                LoreComponent(listOf(infoText))
+            }
+            itemStack[DataComponentTypes.LORE] = newLoreComponent
+        }
+    }
+
+    fun removeDisplayTooltips() {
+        for (itemStack: ItemStack in this.itemStacks) {
+            val loreComponent: LoreComponent = itemStack[DataComponentTypes.LORE] ?: continue
+            val newLoreComponent: LoreComponent = LoreComponent(loreComponent.lines.filter { line -> line !is CustomMutableText }.toList(), loreComponent.styledLines.filter { line -> line !is CustomMutableText }.toList())
+            itemStack[DataComponentTypes.LORE] = newLoreComponent
+        }
+    }
+
+    /*
+    private fun getCustomTextForItemInSlot(slot: Int) : List<CustomMutableText> {
+        val itemStack: ItemStack = this.getStack(slot)
+        if (itemStack.isEmpty) {
+            return listOf()
+        }
+        val inserterName: Text = (itemStack as ItemStackDuck).`publicenderchest$getInserterName`() ?: return listOf()
+        var infoText: CustomMutableText = CustomMutableText(Text.empty().append(Text.literal("Inserted by ")).append(MutableText.of(inserterName.content).formatted(Formatting.ITALIC)))
+        val insertedTime: LocalDateTime? = (itemStack as ItemStackDuck).`publicenderchest$getInsertedTime`()
+        if (insertedTime != null) {
+            val duration: Duration = Duration.between(insertedTime, LocalDateTime.now())
+            val elapsedTime: String = InventoryInteractionLog.formatElapsedTime(duration)
+            infoText = CustomMutableText(Text.empty().append(infoText).append(Text.literal(" $elapsedTime")))
+        }
+        return listOf(infoText)
+    }
+     */
 
     override fun markDirty() {
         this.dirty = true
@@ -157,7 +225,6 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
                 PublicInventory(DefaultedList.copyOf(ItemStack.EMPTY, *deserializedItemStacks.toTypedArray()))
             }
         }
-
     }
 
 }
