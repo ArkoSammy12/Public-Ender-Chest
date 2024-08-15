@@ -21,6 +21,10 @@ abstract public class ClientPlayerInteractionManagerMixin {
 
     @WrapMethod(method = "clickSlot")
     private void onSlotClicked(int syncId, int slotId, int button, SlotActionType actionType, PlayerEntity player, Operation<Void> original) {
+        if (slotId < 0 || slotId >= player.currentScreenHandler.slots.size()) {
+            original.call(syncId, slotId, button, actionType, player);
+            return;
+        }
         if (!areInteractionKeysActive()) {
             original.call(syncId, slotId, button, actionType, player);
             return;
