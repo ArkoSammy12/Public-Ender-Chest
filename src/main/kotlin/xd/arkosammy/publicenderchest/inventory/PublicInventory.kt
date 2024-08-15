@@ -2,8 +2,6 @@ package xd.arkosammy.publicenderchest.inventory
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.LoreComponent
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.Inventories
 import net.minecraft.inventory.Inventory
@@ -60,7 +58,6 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
     override fun removeStack(slot: Int, amount: Int): ItemStack =
         Inventories.splitStack(this.itemStacks, slot, amount)
 
-
     override fun removeStack(slot: Int): ItemStack =
         Inventories.removeStack(this.itemStacks, slot)
 
@@ -93,57 +90,6 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
         }
         return true
     }
-
-    fun addDisplayTooltips() {
-        for (itemStack: ItemStack in this.itemStacks) {
-            if (itemStack.isEmpty) {
-                continue
-            }
-            val inserterName: Text = (itemStack as ItemStackDuck).`publicenderchest$getInserterName`() ?: continue
-            var infoText: Text = CustomMutableText(Text.empty().append(Text.literal("Inserted by ")).append(MutableText.of(inserterName.content).formatted(Formatting.ITALIC)))
-            val insertedTime: LocalDateTime? = (itemStack as ItemStackDuck).`publicenderchest$getInsertedTime`()
-            if (insertedTime != null) {
-                val duration: Duration = Duration.between(insertedTime, LocalDateTime.now())
-                val elapsedTime: String = InventoryInteractionLog.formatElapsedTime(duration)
-                infoText = CustomMutableText(Text.empty().append(infoText).append(Text.literal(" $elapsedTime")))
-            }
-            val loreComponent: LoreComponent? = itemStack[DataComponentTypes.LORE]
-            val newLoreComponent: LoreComponent = if (loreComponent != null) {
-                LoreComponent(loreComponent.lines.toMutableList().also { lines ->
-                    lines.add(infoText)
-                }.toList(), loreComponent.styledLines)
-            } else {
-                LoreComponent(listOf(infoText))
-            }
-            itemStack[DataComponentTypes.LORE] = newLoreComponent
-        }
-    }
-
-    fun removeDisplayTooltips() {
-        for (itemStack: ItemStack in this.itemStacks) {
-            val loreComponent: LoreComponent = itemStack[DataComponentTypes.LORE] ?: continue
-            val newLoreComponent: LoreComponent = LoreComponent(loreComponent.lines.filter { line -> line !is CustomMutableText }.toList(), loreComponent.styledLines.filter { line -> line !is CustomMutableText }.toList())
-            itemStack[DataComponentTypes.LORE] = newLoreComponent
-        }
-    }
-
-    /*
-    private fun getCustomTextForItemInSlot(slot: Int) : List<CustomMutableText> {
-        val itemStack: ItemStack = this.getStack(slot)
-        if (itemStack.isEmpty) {
-            return listOf()
-        }
-        val inserterName: Text = (itemStack as ItemStackDuck).`publicenderchest$getInserterName`() ?: return listOf()
-        var infoText: CustomMutableText = CustomMutableText(Text.empty().append(Text.literal("Inserted by ")).append(MutableText.of(inserterName.content).formatted(Formatting.ITALIC)))
-        val insertedTime: LocalDateTime? = (itemStack as ItemStackDuck).`publicenderchest$getInsertedTime`()
-        if (insertedTime != null) {
-            val duration: Duration = Duration.between(insertedTime, LocalDateTime.now())
-            val elapsedTime: String = InventoryInteractionLog.formatElapsedTime(duration)
-            infoText = CustomMutableText(Text.empty().append(infoText).append(Text.literal(" $elapsedTime")))
-        }
-        return listOf(infoText)
-    }
-     */
 
     override fun markDirty() {
         this.dirty = true
@@ -227,4 +173,19 @@ class PublicInventory(private val itemStacks: DefaultedList<ItemStack> = Default
         }
     }
 
+}
+
+fun ItemStack.getCustomInfoLines() : List<CustomMutableText> {
+    if (this.isEmpty) {
+        return listOf()
+    }
+    val inserterName: Text = (this as ItemStackDuck).`publicenderchest$getInserterName`() ?: return listOf()
+    var infoText: CustomMutableText = CustomMutableText(Text.empty().append(Text.literal("Inserted by ")).append(MutableText.of(inserterName.content).formatted(Formatting.ITALIC)))
+    val insertedTime: LocalDateTime? = (this as ItemStackDuck).`publicenderchest$getInsertedTime`()
+    if (insertedTime != null) {
+        val duration: Duration = Duration.between(insertedTime, LocalDateTime.now())
+        val elapsedTime: String = InventoryInteractionLog.formatElapsedTime(duration)
+        infoText = CustomMutableText(Text.empty().append(infoText).append(Text.literal(" $elapsedTime")))
+    }
+    return listOf(infoText)
 }
