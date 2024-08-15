@@ -3,9 +3,11 @@
   "package": "xd.arkosammy.publicenderchest.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ClientPlayerInteractionManagerMixin"
+    "ClientPlayerInteractionManagerMixin",
+    "ClientPlayNetworkHandlerMixin",
+    "HandledScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-	}
+  }
 }

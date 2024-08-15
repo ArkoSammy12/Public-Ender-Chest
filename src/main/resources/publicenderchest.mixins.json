@@ -5,7 +5,8 @@
   "mixins": [
     "ItemStackMixin",
     "ScreenHandlerMixin",
-    "ServerPlayerEntityMixin"
+    "ServerPlayerEntityMixin",
+    "ServerPlayerEntitySyncHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

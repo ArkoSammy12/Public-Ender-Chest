@@ -62,17 +62,22 @@ class InventoryDatabaseManager(server: MinecraftServer) {
     fun query(server: MinecraftServer, queryContext: QueryContext) : List<InventoryInteractionLog> {
         val url: String = getDatabaseFileUrl(server)
         val queryTimeStamp: Timestamp = Timestamp.valueOf(LocalDateTime.now().minusDays(queryContext.days.toLong()).minusHours(queryContext.hours.toLong()).minusMinutes(queryContext.minutes.toLong()).minusSeconds(queryContext.seconds.toLong()))
-        val query: String = when (queryContext.timeQueryType) {
-            TimeQueryType.BEFORE -> "SELECT * FROM ${MAIN_TABLE_NAME} WHERE timestamp < ?"
-            TimeQueryType.AFTER -> "SELECT * FROM ${MAIN_TABLE_NAME} WHERE timestamp > ?"
+        var query: String = when (queryContext.timeQueryType) {
+            TimeQueryType.BEFORE -> "SELECT * FROM $MAIN_TABLE_NAME WHERE timestamp < ?"
+            TimeQueryType.AFTER -> "SELECT * FROM $MAIN_TABLE_NAME WHERE timestamp > ?"
         }
-
+        val playerName: String? = queryContext.playerName
+        if (playerName != null) {
+            query += " AND player=?"
+        }
         val results: MutableList<InventoryInteractionLog> = mutableListOf()
-
         try {
             DriverManager.getConnection(url).use { connection ->
                 connection.prepareStatement(query).use { statement ->
                     statement.setTimestamp(1, queryTimeStamp)
+                    if (playerName != null) {
+                        statement.setString(2, playerName)
+                    }
                     statement.executeQuery().use { resultSet ->
                         while (resultSet.next()) {
                             val playerName: String = resultSet.getString("player")

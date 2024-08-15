@@ -4,6 +4,7 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface ItemStackDuck {
 
@@ -16,5 +17,9 @@ public interface ItemStackDuck {
 
     @Nullable
     LocalDateTime publicenderchest$getInsertedTime();
+
+    void publicenderchest$addCustomInfoLine(Text text);
+
+    List<Text> publicenderchest$getCustomInfoLines();
 
 }

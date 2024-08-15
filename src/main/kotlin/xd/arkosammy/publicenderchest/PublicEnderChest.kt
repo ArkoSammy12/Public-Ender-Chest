@@ -84,3 +84,7 @@ fun ItemStack.isEnderChest() : Boolean {
 	}
 	return item.block is EnderChestBlock
 }
+
+@JvmStatic
+fun formatInfoTextMetadata(syncId: Int, revision: Int) : String =
+	"publicenderchest:CustomText[syncId=$syncId, revision=$revision]"

@@ -18,4 +18,8 @@ public interface ServerPlayerEntityDuck {
 
     void publicenderchest$showPage();
 
+    void publicenderchest$setHasMod(boolean hasMod);
+
+    boolean publicenderchest$hasMod();
+
 }

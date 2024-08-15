@@ -8,6 +8,8 @@ import org.spongepowered.asm.mixin.Unique;
 import xd.arkosammy.publicenderchest.util.ducks.ItemStackDuck;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Mixin(ItemStack.class)
 public class ItemStackMixin implements ItemStackDuck {
@@ -19,6 +21,9 @@ public class ItemStackMixin implements ItemStackDuck {
     @Unique
     @Nullable
     private LocalDateTime insertedTime;
+
+    @Unique
+    private final List<Text> customInfoLines = new ArrayList<>();
 
     @Override
     public void publicenderchest$setInserterName(Text name) {
@@ -38,6 +43,16 @@ public class ItemStackMixin implements ItemStackDuck {
     @Override
     public @Nullable LocalDateTime publicenderchest$getInsertedTime() {
         return this.insertedTime;
+    }
+
+    @Override
+    public void publicenderchest$addCustomInfoLine(Text text) {
+        this.customInfoLines.add(text);
+    }
+
+    @Override
+    public List<Text> publicenderchest$getCustomInfoLines() {
+        return this.customInfoLines;
     }
 
 }

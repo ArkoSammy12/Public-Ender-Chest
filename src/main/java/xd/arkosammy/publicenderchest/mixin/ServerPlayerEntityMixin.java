@@ -38,8 +38,21 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
     @Unique
     private int pageIndex = 0;
 
+    @Unique
+    private boolean hasMod = false;
+
     public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
         super(world, pos, yaw, gameProfile);
+    }
+
+    @Override
+    public void publicenderchest$setHasMod(boolean hasMod) {
+        this.hasMod = hasMod;
+    }
+
+    @Override
+    public boolean publicenderchest$hasMod() {
+        return this.hasMod;
     }
 
     @Override

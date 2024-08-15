@@ -164,6 +164,32 @@ object DatabaseCommands {
             }
             .build()
 
+        val playerNameArgumentNode: ArgumentCommandNode<ServerCommandSource, String> = CommandManager
+            .argument("playerName", StringArgumentType.word())
+            .requires { src -> src.hasPermissionLevel(4) }
+            .suggests { context, builder ->
+                CommandSource.suggestMatching(
+                    context.source.server.playerNames,
+                    builder
+                )
+            }
+            .executes { ctx ->
+                val playerName: String = StringArgumentType.getString(ctx, "playerName")
+                val player: ServerPlayerEntity = ctx.source.playerOrThrow
+                val queryTypeName: String = StringArgumentType.getString(ctx, "timeQueryType")
+                val queryType: TimeQueryType = TimeQueryType.getFromCommandNodeName(queryTypeName) ?: return@executes Command.SINGLE_SUCCESS.also {
+                    player.sendMessage(Text.literal("Time query type \"$queryTypeName\" does not exist!").formatted(Formatting.RED))
+                }
+                val days: Int = IntegerArgumentType.getInteger(ctx, "days")
+                val hours: Int = IntegerArgumentType.getInteger(ctx, "hours")
+                val minutes: Int = IntegerArgumentType.getInteger(ctx, "minutes")
+                val seconds: Int = IntegerArgumentType.getInteger(ctx, "seconds")
+                val queryContext = QueryContext(queryType, days, hours, minutes, seconds, playerName)
+                (player as ServerPlayerEntityDuck).`publicenderchest$showLogs`(queryContext)
+                Command.SINGLE_SUCCESS
+            }
+            .build()
+
         rootNode.addChild(databaseNode)
 
         databaseNode.addChild(purgeNode)
@@ -180,6 +206,8 @@ object DatabaseCommands {
         queryWithHours.addChild(queryWithMinutes)
         queryWithMinutes.addChild(queryWithSeconds)
 
+        queryWithSeconds.addChild(playerNameArgumentNode)
+
     }
 
     private fun sendMessageToPlayerOrConsole(player: ServerPlayerEntity?, text: MutableText, logType: LogType) {
@@ -190,7 +218,6 @@ object DatabaseCommands {
                 LogType.NORMAL -> PublicEnderChest.LOGGER.info(text.string)
                 LogType.WARNING -> PublicEnderChest.LOGGER.warn(text.string)
                 LogType.ERROR -> PublicEnderChest.LOGGER.error(text.string)
-
             }
         }
     }
