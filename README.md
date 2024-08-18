@@ -17,6 +17,10 @@ Players can toggle the usage of the public inventory
 using the command `/publicenderchest usePublicInventory [true|false]`,
 so that it doesn't get in the way of placing blocks on an Ender Chest block.
 
+When users hover their mouse over an item stack in the public inventory,
+they will be able to see the player who inserted that item into the inventory,
+as well as how long ago it was inserter.
+
 Server operators can also access the Public Ender Chest inventory using the command `/publicenderchest openPublicEnderChestInventory`.
 
 ### Configuration
@@ -43,7 +47,7 @@ how many items were inserted or removed, and the Item stack itself.
 To query the database, you can use the following command.
 
 ```
-/publicenderchest database query [before|after] <days> <hours> <minutes> <seconds>
+/publicenderchest database query [before|after] <days> <hours> <minutes> <seconds> <playerName>
 ```
 
 The days, hours, minutes,
@@ -54,6 +58,7 @@ and seconds are a time parameter that will determine the queried logs based on t
 
 You should favor using `after` queries, since the mod will have to look for considerably less log entries, compared to using a `before` query, which will go all the way back to the beginning starting from the specified time parameter.
 
+There is also an optional `playerName` parameter that you can use to look for actions done by a specific player. The logs returned will correspond to those made by players with the given name, regardless of players' UUID.
 
 When performing a query, the logs will be shown in your chat in a paginated style.
 
@@ -88,6 +93,12 @@ All the database related commands are only available to operators.
 You can optionally install this mod in your client.
 Doing so will let you right-click an Ender Chest item in your inventory
 while holding the Cntrl or Alt keys to open the Public Ender Chest inventory.
+
+Furthermore,
+installing the mod in the client will allow for proper syncing of item stack information between the server and the client,
+allowing for proper usage of mods like Item Scroller,
+and reducing item stack flickering when doing quick item stack movements between inventories.
+
 
 ## Support
 
