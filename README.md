@@ -19,7 +19,7 @@ so that it doesn't get in the way of placing blocks on an Ender Chest block.
 
 When users hover their mouse over an item stack in the public inventory,
 they will be able to see the player who inserted that item into the inventory,
-as well as how long ago it was inserter.
+as well as how long ago it was inserted.
 
 Server operators can also access the Public Ender Chest inventory using the command `/publicenderchest openPublicEnderChestInventory`.
 
