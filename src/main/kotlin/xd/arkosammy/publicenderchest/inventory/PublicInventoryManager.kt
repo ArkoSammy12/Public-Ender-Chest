@@ -9,7 +9,6 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
-import net.minecraft.util.TypedActionResult
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.world.World
 import xd.arkosammy.publicenderchest.PublicEnderChest
@@ -62,26 +61,26 @@ class PublicInventoryManager(inputPublicInventory: PublicInventory = PublicInven
         return ActionResult.SUCCESS
     }
 
-    override fun onItemInteractedListener(player: PlayerEntity, world: World, hand: Hand): TypedActionResult<ItemStack> {
+    override fun onItemInteractedListener(player: PlayerEntity, world: World, hand: Hand): ActionResult {
         val heldStack: ItemStack = player.getStackInHand(hand)
         if (world.isClient() || player !is ServerPlayerEntity) {
-            return TypedActionResult.pass(heldStack)
+            return ActionResult.PASS
         }
         if (!heldStack.isEnderChest()) {
-            return TypedActionResult.pass(heldStack)
+            return ActionResult.PASS
         }
         val isUsingPublicInventory: Boolean = player.getAttached(PublicEnderChest.USING_PUBLIC_INVENTORY) ?: true
         if (!isUsingPublicInventory) {
-            return TypedActionResult.pass(heldStack)
+            return ActionResult.PASS
         }
         if (player.isSpectator) {
-            return TypedActionResult.pass(heldStack)
+            return ActionResult.PASS
         }
         if (!publicInventory.canPlayerUse(player)) {
-            return TypedActionResult.pass(heldStack)
+            return ActionResult.PASS
         }
         (player as ServerPlayerEntityDuck).`publicenderchest$openInventory`(PublicEnderChest.PUBLIC_INVENTORY_NAME, publicInventory)
-        return TypedActionResult.success(heldStack)
+        return ActionResult.SUCCESS_SERVER
     }
 
     companion object {

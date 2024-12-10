@@ -10,14 +10,12 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.Context
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.CustomPayload
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
-import net.minecraft.util.TypedActionResult
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.world.World
 import xd.arkosammy.publicenderchest.PublicEnderChest
@@ -51,7 +49,7 @@ object Events {
         return PublicEnderChest.INVENTORY_MANAGER.onBlockInteractedListener(player, world, hand, hitResult)
     }
 
-    private fun onItemInteracted(player: PlayerEntity, world: World, hand: Hand): TypedActionResult<ItemStack> {
+    private fun onItemInteracted(player: PlayerEntity, world: World, hand: Hand): ActionResult {
         return PublicEnderChest.INVENTORY_MANAGER.onItemInteractedListener(player, world, hand)
     }
 
